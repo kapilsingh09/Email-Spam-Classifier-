@@ -1,31 +1,505 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Spam Classifier</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐾 Spam SMS Sniffer - Cat Classifier 🐈</title>
+    <!-- Tailwind CSS v3 via Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka (rounded UI) & Caveat (handwritten) -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Caveat:wght@400..700&family=Architects+Daughter&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cream: '#FAF6EE',
+                        doodleYellow: '#FEF08A',
+                        doodlePink: '#FFB7D5',
+                        doodleGreen: '#A7F3D0',
+                        doodleRed: '#FCA5A5',
+                        doodleBlue: '#BAE6FD',
+                    },
+                    fontFamily: {
+                        sans: ['Fredoka', 'sans-serif'],
+                        hand: ['Caveat', 'cursive'],
+                        sketch: ['"Architects Daughter"', 'cursive'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Sketchbook Grid Background */
+        .notebook-grid {
+            background-color: #faf6ee;
+            background-image: 
+                linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* Ruled yellow paper lines */
+        .ruled-paper {
+            background-color: #fefcf0;
+            background-image: repeating-linear-gradient(
+                #fefcf0,
+                #fefcf0 31px,
+                #cbd5e1 31px,
+                #cbd5e1 32px
+            );
+            line-height: 32px;
+            padding-top: 8px;
+            padding-bottom: 8px;
+        }
+
+        /* Doodley border styles */
+        .doodle-border {
+            border: 4px solid #1f1f1f;
+        }
+
+        .doodle-shadow {
+            box-shadow: 6px 6px 0px #1f1f1f;
+            transition: all 0.2s ease;
+        }
+
+        .doodle-shadow:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 8px 8px 0px #1f1f1f;
+        }
+
+        .doodle-shadow:active {
+            transform: translate(3px, 3px);
+            box-shadow: 3px 3px 0px #1f1f1f;
+        }
+
+        /* Custom Tape effect */
+        .tape {
+            background-color: rgba(253, 224, 71, 0.75);
+            box-shadow: 0px 2px 4px rgba(0,0,0,0.05);
+            transform: rotate(-3deg);
+        }
+
+        /* Bounce animation */
+        @keyframes bounce-subtle {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-6px) rotate(1deg); }
+        }
+        .bounce-hover:hover {
+            animation: bounce-subtle 0.6s ease infinite;
+        }
+        
+        /* Shaking animation for spam */
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            20%, 60% { transform: rotate(-2deg) scale(1.02); }
+            40%, 80% { transform: rotate(2deg) scale(1.02); }
+        }
+        .shake-alert {
+            animation: shake 0.5s ease-in-out;
+        }
+    </style>
 </head>
-<body>
+<body class="notebook-grid min-h-screen text-[#1f1f1f] p-4 md:p-8 flex flex-col items-center selection:bg-doodlePink select-none">
 
-    <h1>Spam SMS Classifier</h1>
+    <!-- Container -->
+    <div class="w-full max-w-2xl flex flex-col items-center">
+        
+        <!-- Polaroid White Cat Section -->
+        <div class="relative bg-white p-4 pb-6 doodle-border shadow-md rotate-[-2deg] hover:rotate-[1deg] transition-transform duration-500 max-w-[260px] mb-8 mt-6">
+            <!-- Tape top left -->
+            <div class="absolute -top-3 left-10 w-20 h-6 tape opacity-80 select-none"></div>
+            <!-- Tape top right -->
+            <div class="absolute -top-2 right-8 w-16 h-6 tape opacity-75 rotate-[5deg] select-none"></div>
+            
+            <!-- White Cat Image -->
+            <div class="w-full aspect-square bg-[#efefef] doodle-border overflow-hidden relative">
+                <img id="cat-display-img" src="https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=400&h=400&q=80" 
+                     alt="Cute White Cat Inspector" class="w-full h-full object-cover transition-opacity duration-300">
+                <div id="cat-loading" class="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center opacity-0 transition-opacity duration-200 pointer-events-none">
+                    <span class="text-3xl animate-spin">🐾</span>
+                </div>
+            </div>
+            
+            <!-- Handwritten caption -->
+            <div class="text-center font-hand text-2xl mt-3 text-gray-700 tracking-wide">
+                <span>Cat Inspector Yuki 🐈</span>
+            </div>
+            
+            <!-- Change Cat Button -->
+            <button onclick="changeCat()" class="absolute -bottom-4 -right-4 bg-doodleBlue text-xs doodle-border rounded-full px-3 py-1 font-semibold hover:bg-sky-200 active:scale-95 transition-transform shadow-sm">
+                Next Cat 🐾
+            </button>
+        </div>
 
-    <form action="/predict" method="POST">
+        <!-- Main Card -->
+        <div class="w-full bg-white doodle-border doodle-shadow rounded-3xl p-6 md:p-8 mb-8 relative">
+            
+            <!-- Little pencil doodle background decorative -->
+            <div class="absolute -top-6 -left-6 text-4xl transform -rotate-12 hidden md:block select-none pointer-events-none">✏️</div>
+            <div class="absolute -bottom-8 -right-6 text-4xl transform rotate-45 hidden md:block select-none pointer-events-none">🎨</div>
 
-        <textarea
-            name="message"
-            rows="6"
-            cols="50"
-            placeholder="Enter your message here...">{{ message if message else "" }}</textarea>
+            <!-- Title -->
+            <div class="text-center mb-6">
+                <h1 class="text-4xl md:text-5xl font-sketch font-bold tracking-tight mb-2 relative inline-block">
+                    Spam SMS Classifier
+                    <svg class="absolute -bottom-2 left-0 w-full" height="10" viewBox="0 0 100 10" preserveAspectRatio="none">
+                        <path d="M0,7 Q50,2 100,7" stroke="#1f1f1f" stroke-width="4" fill="transparent"/>
+                    </svg>
+                </h1>
+                <p class="text-sm md:text-base font-hand text-2xl text-gray-600 mt-3">
+                    Submit a message, and let Yuki sniff out the spams! 🔎
+                </p>
+            </div>
 
-        <br><br>
+            <!-- Main Input Form -->
+            <form id="prediction-form" action="/predict" method="POST" class="space-y-6">
+                
+                <!-- Ruled pad message container -->
+                <div class="relative rounded-2xl overflow-hidden doodle-border bg-[#fefcf0] p-1">
+                    <div class="flex items-center px-4 py-2 bg-yellow-100 border-b-2 border-black">
+                        <div class="flex space-x-1.5">
+                            <span class="w-3 h-3 rounded-full bg-red-400 border border-black"></span>
+                            <span class="w-3 h-3 rounded-full bg-yellow-400 border border-black"></span>
+                            <span class="w-3 h-3 rounded-full bg-green-400 border border-black"></span>
+                        </div>
+                        <span class="ml-3 text-xs font-mono font-bold text-gray-500 uppercase tracking-wider">message.txt</span>
+                        <span id="char-count" class="ml-auto text-xs font-mono font-bold text-gray-400">0 chars</span>
+                    </div>
 
-        <button type="submit">Predict</button>
+                    <!-- Textarea with ruled notebook paper lines -->
+                    <textarea
+                        id="message-input"
+                        name="message"
+                        rows="5"
+                        placeholder="Type, paste, or click a template message below..."
+                        class="w-full resize-none outline-none border-none ruled-paper px-6 md:px-8 font-sketch text-lg text-gray-800 placeholder-gray-400 focus:placeholder-transparent"
+                        oninput="updateCount()"
+                        required>{{ message if message else "" }}</textarea>
+                </div>
 
-    </form>
+                <!-- Template Sticky Notes -->
+                <div>
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-1">
+                        <span>💡</span> Try quick templates:
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- Ham Card -->
+                        <div onclick="useTemplate(true)" class="cursor-pointer bg-doodleGreen p-3 doodle-border rounded-xl text-left hover:scale-[1.02] transition-transform select-none">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold text-xs bg-white px-2 py-0.5 rounded-full border border-black">HAM</span>
+                                <span class="text-xs">😺 Safe</span>
+                            </div>
+                            <p class="text-xs text-gray-700 font-mono line-clamp-2">"Hey! Are we still on for pizza tonight at 7? Let me know."</p>
+                        </div>
 
-    {% if prediction %}
+                        <!-- Spam Card -->
+                        <div onclick="useTemplate(false)" class="cursor-pointer bg-doodleRed p-3 doodle-border rounded-xl text-left hover:scale-[1.02] transition-transform select-none">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold text-xs bg-white px-2 py-0.5 rounded-full border border-black text-red-600">SPAM</span>
+                                <span class="text-xs">🚨 Danger</span>
+                            </div>
+                            <p class="text-xs text-gray-700 font-mono line-clamp-2">"WINNER! Claim your FREE £1000 prize now! Text CLM to 80812 instantly!"</p>
+                        </div>
+                    </div>
+                </div>
 
-        <h2>Prediction: {{ prediction }}</h2>
+                <!-- Submit Button -->
+                <div class="pt-2">
+                    <button
+                        type="submit"
+                        id="predict-btn"
+                        class="w-full py-4 px-6 bg-doodleYellow text-xl font-bold rounded-2xl doodle-border doodle-shadow flex items-center justify-center gap-2 hover:bg-yellow-200"
+                    >
+                        <span id="btn-icon" class="text-2xl">🔎</span>
+                        <span id="btn-text">Sniff Out Spam!</span>
+                    </button>
+                </div>
+            </form>
+            
+            <!-- Loading Indicator -->
+            <div id="loading-indicator" class="hidden flex-col items-center justify-center py-8 space-y-3">
+                <div class="relative flex items-center justify-center">
+                    <span class="text-5xl animate-bounce">🐱</span>
+                    <span class="absolute -right-6 text-xl animate-pulse">🔎</span>
+                </div>
+                <p class="font-sketch font-semibold text-lg text-gray-600 animate-pulse">Yuki is sniffing the message for spam...</p>
+                <div class="flex gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-doodlePink animate-ping"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-doodleBlue animate-ping delay-150"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-doodleGreen animate-ping delay-300"></span>
+                </div>
+            </div>
 
-    {% endif %}
+            <!-- Result Section Container -->
+            <div id="result-container" class="mt-8 transition-all duration-300">
+                {% if prediction %}
+                    <!-- Render Flask backend prediction on direct reload -->
+                    {% if prediction == "Spam" %}
+                        <div class="bg-doodleRed p-6 doodle-border rounded-2xl shadow-sm shake-alert relative overflow-hidden">
+                            <div class="absolute right-3 top-3 text-7xl opacity-15 pointer-events-none">🚨</div>
+                            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2 text-red-900">
+                                <span>🚨</span> Yuki Says: IT'S SPAM!
+                            </h2>
+                            <p class="text-gray-800 font-sketch text-lg leading-relaxed mb-4">
+                                "Hiss! Yuki caught a fishy scent! This message looks like a spam or scam. Keep your distance, meow!"
+                            </p>
+                            <div class="bg-white bg-opacity-50 p-3 rounded-lg border border-black border-dashed">
+                                <span class="font-bold text-xs uppercase tracking-wider text-red-800">Analyzed Message:</span>
+                                <p class="text-sm font-mono break-words mt-1 text-gray-700 italic">"{{ message }}"</p>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="bg-doodleGreen p-6 doodle-border rounded-2xl shadow-sm relative overflow-hidden">
+                            <div class="absolute right-3 top-3 text-7xl opacity-15 pointer-events-none">💖</div>
+                            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2 text-green-900">
+                                <span>💚</span> Yuki Says: IT'S HAM (SAFE)!
+                            </h2>
+                            <p class="text-gray-800 font-sketch text-lg leading-relaxed mb-4">
+                                "Purr... Yuki approves! This message smells completely normal and friendly. No danger detected!"
+                            </p>
+                            <div class="bg-white bg-opacity-50 p-3 rounded-lg border border-black border-dashed">
+                                <span class="font-bold text-xs uppercase tracking-wider text-green-800">Analyzed Message:</span>
+                                <p class="text-sm font-mono break-words mt-1 text-gray-700 italic">"{{ message }}"</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
 
+        </div>
+        
+        <!-- Footer -->
+        <p class="text-center text-xs text-gray-500 font-mono mb-8 flex items-center justify-center gap-1.5">
+            <span>Made with 🐾 and Tailwind CSS</span>
+            <span>•</span>
+            <a href="#" class="underline hover:text-gray-700">How it works</a>
+        </p>
+    </div>
+
+    <script>
+        // Array of cute white cat images from Unsplash
+        const catImages = [
+            "https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=400&h=400&q=80", // Yuki sitting alertly
+            "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=400&h=400&q=80", // Yuki with cool orange glasses
+            "https://images.unsplash.com/photo-1618826411640-d6df44dd3f7a?auto=format&fit=crop&w=400&h=400&q=80", // Cute white kitten looking up
+            "https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&fit=crop&w=400&h=400&q=80", // Playful white cat peeking
+            "https://images.unsplash.com/photo-1513360309081-36f5e878fc9e?auto=format&fit=crop&w=400&h=400&q=80"  // White cat stretching paws
+        ];
+
+        let currentCatIndex = 0;
+
+        function changeCat() {
+            const imgElement = document.getElementById("cat-display-img");
+            const loader = document.getElementById("cat-loading");
+            
+            // Show sub-loader inside polaroid
+            loader.classList.remove("opacity-0");
+            
+            currentCatIndex = (currentCatIndex + 1) % catImages.length;
+            
+            // Preload image
+            const tempImg = new Image();
+            tempImg.src = catImages[currentCatIndex];
+            tempImg.onload = function() {
+                imgElement.src = catImages[currentCatIndex];
+                loader.classList.add("opacity-0");
+            };
+            tempImg.onerror = function() {
+                loader.classList.add("opacity-0");
+            };
+        }
+
+        // Initialize with random cat index on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            currentCatIndex = Math.floor(Math.random() * catImages.length);
+            document.getElementById("cat-display-img").src = catImages[currentCatIndex];
+        });
+
+        // Update character counter
+        function updateCount() {
+            const textarea = document.getElementById("message-input");
+            const counter = document.getElementById("char-count");
+            counter.innerText = `${textarea.value.length} chars`;
+        }
+
+        // Apply templates to input with typing animation
+        function useTemplate(isHam) {
+            const hamText = "Hey! Are we still on for pizza tonight at 7? Let me know.";
+            const spamText = "URGENT! You have won a 1-week FREE membership in our £100,000 prize jackpot! Txt the word: CLAIM to No: 81010 T&C www.dbuk.net LCCLTD SUB16";
+            
+            const targetText = isHam ? hamText : spamText;
+            const textarea = document.getElementById("message-input");
+            
+            // Cancel any current animation
+            if (window.typingInterval) {
+                clearInterval(window.typingInterval);
+            }
+            
+            textarea.value = "";
+            let idx = 0;
+            
+            // Disable button during typing to prevent clicks
+            const btn = document.getElementById("predict-btn");
+            btn.disabled = true;
+            
+            window.typingInterval = setInterval(() => {
+                if (idx < targetText.length) {
+                    textarea.value += targetText[idx];
+                    idx++;
+                    updateCount();
+                } else {
+                    clearInterval(window.typingInterval);
+                    btn.disabled = false;
+                }
+            }, 12);
+        }
+
+        // Intercept Form Submit for AJAX Smoothness
+        const form = document.getElementById("prediction-form");
+        form.addEventListener("submit", function(event) {
+            event.preventDefault();
+            
+            const textarea = document.getElementById("message-input");
+            const message = textarea.value.trim();
+            if (!message) return;
+            
+            // Hide previous results and form inputs during animation
+            const formElement = document.getElementById("prediction-form");
+            const loadingIndicator = document.getElementById("loading-indicator");
+            const resultContainer = document.getElementById("result-container");
+            
+            formElement.classList.add("hidden");
+            loadingIndicator.classList.remove("hidden");
+            resultContainer.innerHTML = ""; // Clear old result
+
+            // Prepare request data
+            const formData = new FormData();
+            formData.append("message", message);
+            
+            // Make request (AJAX mode with Accept: application/json)
+            fetch("/predict", {
+                method: "POST",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Accept": "application/json"
+                },
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Server error, meow!");
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Simulate Yuki sniff time (800ms) for high-fidelity experience
+                setTimeout(() => {
+                    loadingIndicator.classList.add("hidden");
+                    formElement.classList.remove("hidden");
+                    
+                    const isSpam = data.prediction === "Spam";
+                    const safeText = isSpam 
+                        ? `
+                        <div class="bg-doodleRed p-6 doodle-border rounded-2xl shadow-sm shake-alert relative overflow-hidden">
+                            <div class="absolute right-3 top-3 text-7xl opacity-15 pointer-events-none">🚨</div>
+                            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2 text-red-900">
+                                <span>🚨</span> Yuki Says: IT'S SPAM!
+                            </h2>
+                            <p class="text-gray-800 font-sketch text-lg leading-relaxed mb-4">
+                                "Hiss! Yuki caught a fishy scent! This message looks like a spam or scam. Keep your distance, meow!"
+                            </p>
+                            <div class="bg-white bg-opacity-50 p-3 rounded-lg border border-black border-dashed">
+                                <span class="font-bold text-xs uppercase tracking-wider text-red-800">Analyzed Message:</span>
+                                <p class="text-sm font-mono break-words mt-1 text-gray-700 italic">"${escapeHtml(message)}"</p>
+                            </div>
+                        </div>
+                        `
+                        : `
+                        <div class="bg-doodleGreen p-6 doodle-border rounded-2xl shadow-sm relative overflow-hidden">
+                            <div class="absolute right-3 top-3 text-7xl opacity-15 pointer-events-none">💖</div>
+                            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2 text-green-900">
+                                <span>💚</span> Yuki Says: IT'S HAM (SAFE)!
+                            </h2>
+                            <p class="text-gray-800 font-sketch text-lg leading-relaxed mb-4">
+                                "Purr... Yuki approves! This message smells completely normal and friendly. No danger detected!"
+                            </p>
+                            <div class="bg-white bg-opacity-50 p-3 rounded-lg border border-black border-dashed">
+                                <span class="font-bold text-xs uppercase tracking-wider text-green-800">Analyzed Message:</span>
+                                <p class="text-sm font-mono break-words mt-1 text-gray-700 italic">"${escapeHtml(message)}"</p>
+                            </div>
+                        </div>
+                        `;
+                    
+                    resultContainer.innerHTML = safeText;
+                    // Auto-scroll to prediction smoothly
+                    resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 900);
+            })
+            .catch(error => {
+                console.error(error);
+                setTimeout(() => {
+                    loadingIndicator.classList.add("hidden");
+                    formElement.classList.remove("hidden");
+                    
+                    // Display friendly local fallback predictions for offline/missing nltk environments
+                    const lowerMsg = message.lowerMsg || message.toLowerCase();
+                    const spamKeywords = ["free", "txt", "claim", "prize", "urgent", "won", "winner", "cash", "service", "mobile", "money", "congrats", "reply", "nokia", "weekly", "customer", "stop", "call"];
+                    
+                    // Simple heuristic matching
+                    const matchesSpam = spamKeywords.some(keyword => lowerMsg.includes(keyword));
+                    const predictionText = matchesSpam ? "Spam" : "Ham";
+                    
+                    const localResult = matchesSpam
+                        ? `
+                        <div class="bg-doodleRed p-6 doodle-border rounded-2xl shadow-sm shake-alert relative overflow-hidden border-orange-500">
+                            <div class="absolute right-3 top-3 text-7xl opacity-15 pointer-events-none">🚨</div>
+                            <div class="absolute top-2 right-2 bg-yellow-100 border border-black px-2 py-0.5 text-[10px] font-bold rounded">LOCAL SNIFFER FALLBACK</div>
+                            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2 text-red-900">
+                                <span>🚨</span> Yuki Says: IT'S SPAM! (Local Mode)
+                            </h2>
+                            <p class="text-gray-800 font-sketch text-lg leading-relaxed mb-4">
+                                "Hiss! Even without a server connection, Yuki smells fishy words. This message looks like spam!"
+                            </p>
+                            <div class="bg-white bg-opacity-50 p-3 rounded-lg border border-black border-dashed">
+                                <span class="font-bold text-xs uppercase tracking-wider text-red-800">Analyzed Message:</span>
+                                <p class="text-sm font-mono break-words mt-1 text-gray-700 italic">"${escapeHtml(message)}"</p>
+                            </div>
+                        </div>
+                        `
+                        : `
+                        <div class="bg-doodleGreen p-6 doodle-border rounded-2xl shadow-sm relative overflow-hidden border-teal-500">
+                            <div class="absolute right-3 top-3 text-7xl opacity-15 pointer-events-none">💖</div>
+                            <div class="absolute top-2 right-2 bg-yellow-100 border border-black px-2 py-0.5 text-[10px] font-bold rounded">LOCAL SNIFFER FALLBACK</div>
+                            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2 text-green-900">
+                                <span>💚</span> Yuki Says: IT'S HAM (SAFE)! (Local Mode)
+                            </h2>
+                            <p class="text-gray-800 font-sketch text-lg leading-relaxed mb-4">
+                                "Purr... Yuki smells clean water and fresh salmon. This message looks safe!"
+                            </p>
+                            <div class="bg-white bg-opacity-50 p-3 rounded-lg border border-black border-dashed">
+                                <span class="font-bold text-xs uppercase tracking-wider text-green-800">Analyzed Message:</span>
+                                <p class="text-sm font-mono break-words mt-1 text-gray-700 italic">"${escapeHtml(message)}"</p>
+                            </div>
+                        </div>
+                        `;
+                    
+                    resultContainer.innerHTML = localResult;
+                    resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 900);
+            });
+        });
+
+        // Helper to escape HTML tags to prevent XSS
+        function escapeHtml(str) {
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
 </body>
 </html>
