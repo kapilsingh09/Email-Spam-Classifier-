@@ -1,4 +1,4 @@
-# 🐾 Spam SMS Sniffer - Cat Classifier 🐈
+#  Spam SMS Sniffer - Cat Classifier 
 
 Welcome to **Spam SMS Sniffer**, a playful, doodley-style SMS Spam Classifier powered by **Flask**, **scikit-learn**, and custom hand-drawn aesthetics using **Tailwind CSS**. 
 
@@ -6,23 +6,23 @@ The app features a helpful cat assistant named **Yuki** who sniffs out suspiciou
 
 ---
 
-## 🎨 App Preview
+##  App Preview
 
 ![Spam SMS Sniffer App Mockup](app_mockup.png)
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
-* **🐱 Polaroid Cat Inspector:** Displays a cute white cat picture at the top. Cycle through different cats with the "Next Cat 🐾" button.
-* **✍️ Sketchbook / Doodle Theme:** Styled like a retro school notebook with warm cream grid lines, notebook-style yellow legal pad textareas, and tactile Neo-brutalism sketchy borders and drop-shadows.
-* **💡 Quick-Test Templates:** Includes click-to-type test templates for both Ham and Spam to easily see the classifier in action.
-* **⚡ AJAX Smoothness:** Asynchronous message inspection using `fetch` to ensure zero-lag, no-page-reload classification and beautiful bounce/slide transitions.
-* **🔌 Zero-Config Fallback:** Fully operational front-end local fallback engine that uses keyword heuristics to classify messages even if the backend scikit-learn model experiences errors.
+* ** Polaroid Cat Inspector:** Displays a cute white cat picture at the top. Cycle through different cats with the "Next Cat " button.
+* ** ketchbook / Doodle Theme:** Styled like a retro school notebook with warm cream grid lines, notebook-style yellow legal pad textareas, and tactile Neo-brutalism sketchy borders and drop-shadows.
+* * Quick-Test Templates:** Includes click-to-type test templates for both Ham and Spam to easily see the classifier in action.
+* ** AJAX Smoothness:** Asynchronous message inspection using `fetch` to ensure zero-lag, no-page-reload classification and beautiful bounce/slide transitions.
+* ** Zero-Config Fallback:** Fully operational front-end local fallback engine that uses keyword heuristics to classify messages even if the backend scikit-learn model experiences errors.
 
 ---
 
-## 🛠️ File Structure
+## File Structure
 
 * [app.py](file:///c:/Users/karan/Desktop/Sleepyy/SMS%20Spam%20Detection/app.py) - Main Flask application routing and ML prediction endpoints.
 * [templates/index.html](file:///c:/Users/karan/Desktop/Sleepyy/SMS%20Spam%20Detection/templates/index.html) - Doodle-themed HTML frontend dashboard.
@@ -32,7 +32,7 @@ The app features a helpful cat assistant named **Yuki** who sniffs out suspiciou
 
 ---
 
-## 🏃 How to Run the App
+##  How to Run the App
 
 1. Ensure you have the required Python libraries installed:
    ```bash
@@ -51,7 +51,7 @@ The app features a helpful cat assistant named **Yuki** who sniffs out suspiciou
 
 ---
 
-## 🐾 How it Works (Under the Hood)
+##  How it Works (Under the Hood)
 
 1. **Text Preprocessing:** When a message is submitted, the text is lowercased and tokenized. Stopwords (common English words that don't add meaning) and punctuation are removed.
 2. **Stemming:** Words are reduced to their root forms (e.g., `crazy` -> `crazi`, `available` -> `avail`) using the **Porter Stemmer** algorithm.
